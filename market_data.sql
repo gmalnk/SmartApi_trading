@@ -1,4 +1,4 @@
-CREATE TABLE dailytf_data (
+CREATE TABLE if not exists dailytf_data (
     id BIGSERIAL PRIMARY KEY,
     index INT NOT NULL,
     token INT NOT NULL,
@@ -9,7 +9,7 @@ CREATE TABLE dailytf_data (
     close_price REAL NOT NULL
 );
 
-CREATE TABLE fifteentf_data (
+CREATE TABLE if not exists fifteentf_data (
     id BIGSERIAL PRIMARY KEY,
     index INT NOT NULL,
     token INT NOT NULL,
@@ -20,7 +20,7 @@ CREATE TABLE fifteentf_data (
     close_price REAL NOT NULL
 );
 
-CREATE TABLE highlow_data (
+CREATE TABLE if not exists highlow_data (
     id BIGSERIAL PRIMARY KEY,
     index INT NOT NULL,
     token INT NOT NULL,
@@ -31,18 +31,16 @@ CREATE TABLE highlow_data (
     close_price REAL NOT NULL,
     high_low VARCHAR(7),
     tf varchar(14)
-)
+);
 
-create table ticks_data (
+CREATE TABLE if not exists ticks_data (
     id BIGSERIAL PRIMARY KEY,
     symbol_token INT,
     time_stamp timestamptz,                                                        
     ltp REAL
 );
 
-
-
-CREATE TABLE trendline_data(
+CREATE TABLE if not exists trendline_data(
     id BIGSERIAL PRIMARY KEY,
     token INT NOT NULL,
     tf varchar(14),
@@ -54,4 +52,4 @@ CREATE TABLE trendline_data(
     index1 INT NOT NULL,
     index2 INT NOT NULL,
     index Int Not Null
-)
+);
