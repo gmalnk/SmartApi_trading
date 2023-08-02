@@ -9,6 +9,7 @@ from config import *
 from smartapi import SmartConnect
 import pyotp
 
+
 def get_today_candle_data():
     data = []
     for stock_tocken in tokens:
@@ -39,7 +40,7 @@ def get_past_candle_data(stock_token):
     # local parameters
     # start date is twenty years back
     start_date = date(date.today().year-20,
-                        date.today().month, date.today().day)
+                      date.today().month, date.today().day)
     # end date is today i.e the day we are fetching the data
     end_date = date(date.today().year,
                     date.today().month, date.today().day-1)
@@ -68,57 +69,67 @@ userProfile = obj.getProfile(refreshToken)
 
 
 print('session generated')
+
+
 def historic_api(stock_token, time_frame, fromdate, todate):
     try:
-        historicParam={
-        "exchange": "NSE",
-        "symboltoken": stock_token,
-        "interval": time_frame,
-        "fromdate": fromdate, 
-        "todate": todate
-        # "fromdate": "2021-02-08 09:00", 
-        # "todate": "2021-02-08 09:16"
+        historicParam = {
+            "exchange": "NSE",
+            "symboltoken": stock_token,
+            "interval": time_frame,
+            "fromdate": fromdate,
+            "todate": todate
+            # "fromdate": "2021-02-08 09:00",
+            # "todate": "2021-02-08 09:16"
         }
         data = obj.getCandleData(historicParam)
         return data["data"]
     except Exception as e:
-        print(f"Historic Api failed: {e.message}\nparams------\n stock_token: {stock_token}\n time_frame: {time_frame}\n fromdate: {fromdate}\n todate: {todate}\n  ")
+        print(
+            f"Historic Api failed: {e.message}\nparams------\n stock_token: {stock_token}\n time_frame: {time_frame}\n fromdate: {fromdate}\n todate: {todate}\n  ")
 
 
 # historic_api('7', 'ONE_DAY', '2023-03-03 00:00', '2023-05-28 00:00')
 
 def get_data(time_frame):
     for stock_token in tokens:
-        data =[]
+        data = []
         for i in range(23):
             time.sleep(1)
-            fromdate = date(date.today().year-23+i,date.today().month,date.today().day).strftime("%Y-%m-%d %H:%M")
-            todate = date(date.today().year-22+i,date.today().month-1,30).strftime("%Y-%m-%d %H:%M")
-            rows =historic_api(stock_token, time_frame, fromdate, todate)
+            fromdate = date(date.today().year-23+i, date.today().month,
+                            date.today().day).strftime("%Y-%m-%d %H:%M")
+            todate = date(date.today().year-22+i,
+                          date.today().month-1, 30).strftime("%Y-%m-%d %H:%M")
+            rows = historic_api(stock_token, time_frame, fromdate, todate)
             if (rows):
                 data.extend(rows)
         data.sort()
         for i in range(len(data)-1):
-            if(data[i][0] == data[i+1][0]):
+            if (data[i][0] == data[i+1][0]):
                 print(f"date : {data[i][0]}")
-        PgConnection.add_past_data_from_smart_api(stock_token, time_frame, data)
-        print(f"done for stock_token : {stock_token}") 
-        
+        PgConnection.add_past_data_from_smart_api(
+            stock_token, time_frame, data)
+        print(f"done for stock_token : {stock_token}")
+
 # get_data("ONE_DAY")
 
+
 def get_LT_data(time_frame):
-    for stock_token in ['11483']:
-        data =[]
-        fromdate = datetime.now() - timedelta(days=30)
+    for stock_token in ['18921']:
+        data = []
+        fromdate = datetime.now() - timedelta(days=60)
         todate = datetime.now()
-        rows =historic_api(stock_token, time_frame, fromdate.strftime("%Y-%m-%d %H:%M"), todate.strftime("%Y-%m-%d %H:%M"))
+        rows = historic_api(stock_token, time_frame, fromdate.strftime(
+            "%Y-%m-%d %H:%M"), todate.strftime("%Y-%m-%d %H:%M"))
         if (rows):
             data.extend(rows)
         data.sort()
         for i in range(len(data)-1):
-            if(data[i][0] == data[i+1][0]):
+            if (data[i][0] == data[i+1][0]):
                 print(f"date : {data[i][0]}")
-        PgConnection.add_past_data_from_smart_api(stock_token, time_frame, data)
+        PgConnection.add_past_data_from_smart_api(
+            stock_token, time_frame, data)
         print(f"done for stock_token : {stock_token}")
 
-get_LT_data("FIFTEEN_MINUTE")
+
+# get_LT_data("FIFTEEN_MINUTE")

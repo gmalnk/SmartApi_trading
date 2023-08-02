@@ -11,10 +11,16 @@ from datetime import date
 import pandas as pd
 import numpy
 from psycopg2.extensions import register_adapter, AsIs
+
+
 def addapt_numpy_float64(numpy_float64):
     return AsIs(numpy_float64)
+
+
 def addapt_numpy_int64(numpy_int64):
     return AsIs(numpy_int64)
+
+
 register_adapter(numpy.float64, addapt_numpy_float64)
 register_adapter(numpy.int64, addapt_numpy_int64)
 
@@ -33,7 +39,7 @@ def close_connection():
 
 
 conn = connect_to_database()
-cur =  conn.cursor()
+cur = conn.cursor()
 
 # this method inserts ticks data into ticks_data table
 # this method gets triggered when the on_data method gets a message
@@ -48,18 +54,21 @@ def add_ticks_data(token, data):
     except (Exception, psycopg2.Error) as error:
         print("Failed to insert record into ticks_data table", error)
 
-def get_ticks_candles(token, time_frame, start_time, end_time = None):
+
+def get_ticks_candles(token, time_frame, start_time, end_time=None):
     time_frame = convert_timeframe(time_frame)
     if end_time == None:
         end_time = start_time
-        start_time = end_time - timedelta(minutes = no_of_minutes(time_frame)) 
+        start_time = end_time - timedelta(minutes=no_of_minutes(time_frame))
     cur = conn.cursor()
-    cur.execute(f"select * from ticks_data where token = {token} and time_stamp >= '{start_time} and time_stamp <= '{end_time}'")
+    cur.execute(
+        f"select * from ticks_data where token = {token} and time_stamp >= '{start_time} and time_stamp <= '{end_time}'")
     rows = cur.fetchall()
     rows = convert_ltp_to_ohlc(time_frame, rows)
     candles = []
     for i in rows.index:
-        candles.append(Candle(0, 0, token, i, rows['open'][i], rows['high'][i], rows['low'][i], rows['close'][i], ""))
+        candles.append(Candle(
+            0, 0, token, i, rows['open'][i], rows['high'][i], rows['low'][i], rows['close'][i], ""))
     return candles
 # this method is responsible for storing each day data, of all stocks, everyday
 # data is a array of array having elements as follows symbol_token, time_stamp, open_price, high_price, low_price, close_price, high_low
@@ -99,6 +108,7 @@ def add_past_data_from_yfinance(stock_token, data):
         cur.close()
         conn.close()
 
+
 def add_past_data_from_smart_api(stock_token, time_frame, data):
     try:
         table = get_table(time_frame)
@@ -107,21 +117,23 @@ def add_past_data_from_smart_api(stock_token, time_frame, data):
         counter = 0
         for row in data:
             row[0] = row[0].replace("T", " ")
-            cur.execute(f"INSERT INTO {table} (token, time_stamp, open_price, high_price, low_price, close_price, index) values ({stock_token}, '{row[0]}', {row[1]}, {row[2]}, {row[3]}, {row[4]}, {counter})")
+            cur.execute(
+                f"INSERT INTO {table} (token, time_stamp, open_price, high_price, low_price, close_price, index) values ({stock_token}, '{row[0]}', {row[1]}, {row[2]}, {row[3]}, {row[4]}, {counter})")
             counter = counter + 1
             conn.commit()
     except (Exception, psycopg2.Error) as error:
-        print(f" at add_past_data_from_smart_api method failed for stock_token : {stock_token}", error)
+        print(
+            f" at add_past_data_from_smart_api method failed for stock_token : {stock_token}", error)
     finally:
         cur.close()
         conn.close()
+
 
 def initialize_high_low(stock_token, time_frame):
     try:
         conn = connect_to_database()
         cur = conn.cursor()
         candles = fetch_candles(stock_token, time_frame)
-        
         candles = Utility.find_highs_and_lows(candles)
         for candle in candles:
             cur.execute(
@@ -133,6 +145,7 @@ def initialize_high_low(stock_token, time_frame):
     finally:
         cur.close()
         conn.close()
+
 
 def get_trendLines(stock_token, time_frame):
     try:
@@ -147,7 +160,9 @@ def get_trendLines(stock_token, time_frame):
     except (Exception, psycopg2.Error) as error:
         print("Failed at get trendlines method  error message : ", error)
     finally:
-        print("generated trendlines successfully for ",tokens[stock_token]," stock")
+        print("generated trendlines successfully for ",
+              tokens[stock_token], " stock")
+
 
 def fetch_highs(stock_token, time_frame):
     try:
@@ -159,6 +174,8 @@ def fetch_highs(stock_token, time_frame):
         rows = cur.fetchall()
         candles = []
         for row in rows:
+            if (row[7] > 0):
+                continue
             candles.append(
                 Candle(0, row[1], row[2], row[3], row[4], row[5], row[6], row[7], ""))
         return candles
@@ -167,8 +184,9 @@ def fetch_highs(stock_token, time_frame):
     finally:
         cur.close()
         conn.close()
-        print("fetched highs successfully for ",tokens[stock_token]," stock")
-    
+        print("fetched highs successfully for ", tokens[stock_token], " stock")
+
+
 def fetch_lows(stock_token, time_frame):
     try:
         conn = connect_to_database()
@@ -187,9 +205,10 @@ def fetch_lows(stock_token, time_frame):
     finally:
         cur.close()
         conn.close()
-        print("fetched lows successfully for ",tokens[stock_token]," stock")
+        print("fetched lows successfully for ", tokens[stock_token], " stock")
 
-def fetch_candles(stock_token, time_frame, limit = 0):
+
+def fetch_candles(stock_token, time_frame, limit=0):
     try:
         conn = connect_to_database()
         cur = conn.cursor()
@@ -215,18 +234,20 @@ def fetch_candles(stock_token, time_frame, limit = 0):
     finally:
         cur.close()
         conn.close()
-        print("fetched candles successfully for ",tokens[stock_token]," stock for ",time_frame," timeframe" )
-    
+        print("fetched candles successfully for ",
+              tokens[stock_token], " stock for ", time_frame, " timeframe")
+
+
 def get_starttime_of_analysis(time_frame):
     match time_frame:
         case 'FIFTEEN_MINUTE':
-            return date.today()-timedelta(days = 30)
+            return date.today()-timedelta(days=30)
         case 'THIRTY_MINUTE':
-            return date.today()-timedelta(days = 60)
+            return date.today()-timedelta(days=60)
         case 'ONE_HOUR':
-            return date.today()-timedelta(weeks = 14)
+            return date.today()-timedelta(weeks=14)
         case 'TWO_HOUR':
-            return date.today()-timedelta(weeks = 28)
+            return date.today()-timedelta(weeks=28)
         case 'FOUR_HOUR':
             return date(date.today().year-1, date.today().month, date.today().day)
         case 'ONE_DAY':
@@ -237,6 +258,7 @@ def get_starttime_of_analysis(time_frame):
             return date(date.today().year-20, date.today().month, date.today().day)
         case default:
             return date.today()
+
 
 def get_table(time_frame):
     match time_frame:
@@ -259,14 +281,17 @@ def get_table(time_frame):
         case default:
             "dailytf_data"
 
+
 def convert_data_timeframe(time_frame, rows):
-    df = pd.DataFrame(rows, columns =['id', 'index', 'token', 'time_stamp', 'open_price', 'high_price', 'low_price', 'close_price'])
+    df = pd.DataFrame(rows, columns=['id', 'index', 'token', 'time_stamp',
+                      'open_price', 'high_price', 'low_price', 'close_price'])
     df['Date'] = df['time_stamp']
     df = df.set_index('Date')
     if time_frame == "ONE_DAY" or time_frame == "FIFTEEN_MINUTE":
         return df
-    df = df.resample(convert_timeframe(time_frame), base = 15).apply(OHLC)
+    df = df.resample(convert_timeframe(time_frame), base=15).apply(OHLC)
     return df
+
 
 def convert_timeframe(time_frame):
     match time_frame:
@@ -289,6 +314,7 @@ def convert_timeframe(time_frame):
         case default:
             return "D"
 
+
 def no_of_minutes(time_frame):
     match time_frame:
         case 'FIFTEEN_MINUTE':
@@ -304,18 +330,40 @@ def no_of_minutes(time_frame):
         case default:
             return 0
 
+
+def get_table_time_frame(time_frame):
+    match time_frame:
+        case 'FIFTEEN_MINUTE':
+            return 'FIFTEEN_MINUTE'
+        case 'THIRTY_MINUTE':
+            return 'FIFTEEN_MINUTE'
+        case 'ONE_HOUR':
+            return 'FIFTEEN_MINUTE'
+        case 'TWO_HOUR':
+            return 'FIFTEEN_MINUTE'
+        case 'FOUR_HOUR':
+            return 'FIFTEEN_MINUTE'
+        case 'ONE_DAY':
+            return 'ONE_DAY'
+        case 'ONE_WEEK':
+            return 'ONE_DAY'
+        case 'ONE_MONTH':
+            return 'ONE_DAY'
+
+
 def convert_ltp_to_ohlc(time_frame, rows):
-    df = pd.DataFrame(rows, columns =['id', 'token', 'time_stamp', 'ltp'])
+    df = pd.DataFrame(rows, columns=['id', 'token', 'time_stamp', 'ltp'])
     df['Date'] = df['time_stamp']
     df = df.set_index('Date')
     df = df['ltp'].resample(time_frame).ohlc(_method='ohlc')
     print(df)
     return df
 
+
 def data_handler(time_frame, start_time):
     stock_token = '18944'
-    candles  = fetch_candles(stock_token,time_frame, 10)
-    candles.append(get_ticks_candles(stock_token,time_frame,start_time))
+    candles = fetch_candles(stock_token, time_frame, 10)
+    candles.append(get_ticks_candles(stock_token, time_frame, start_time))
     candles = Utility.find_highs_and_lows(candles)
     for candle in candles:
         cur.execute(
@@ -324,36 +372,5 @@ def data_handler(time_frame, start_time):
     print("inserted ***********************************")
 
 
-
-get_trendLines('11483', 'FIFTEEN_MINUTE')
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+initialize_high_low('18921', 'ONE_HOUR')
+# get_trendLines('18921', 'ONE_HOUR')

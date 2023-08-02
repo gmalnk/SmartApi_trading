@@ -38,7 +38,8 @@ correlation_id = "priceaction"
 action = 1
 mode = 1
 
-token_list = [{"exchangeType": 1, "tokens": ['2885', '21091', '3456','11536', '312', '9685', '18921', '3718', '3045', '20302', '13376', '14299']}]
+token_list = [{"exchangeType": 1, "tokens": ['2885', '21091', '3456', '11536',
+                                             '312', '9685', '18921', '3718', '3045', '20302', '13376', '14299']}]
 
 sws = SmartWebSocketV2(AUTH_TOKEN, API_KEY, CLIENT_CODE, FEED_TOKEN)
 

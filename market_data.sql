@@ -53,3 +53,22 @@ CREATE TABLE if not exists trendline_data(
     index2 INT NOT NULL,
     index Int Not Null
 );
+
+CREATE TABLE if not exists trades_data(
+    id BIGSERIAL PRIMARY KEY,
+    token INT NOT NULL,
+    tf varchar(14) NOT NULL,
+    status varchar(3),
+    direction varchar(5),
+    entry_condition varchar(5),
+    entry timestamptz,
+    exit timestamptz,
+    tp REAL,
+    sl REAL,
+    bp REAL,
+    sp REAL,
+    rrr REAL,
+    quantity REAL,
+    cap REAL,
+    current_value Real,
+);
